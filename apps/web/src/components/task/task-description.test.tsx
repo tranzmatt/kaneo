@@ -1,7 +1,10 @@
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { type Editor, Extension } from "@tiptap/core";
 import TaskItem from "@tiptap/extension-task-item";
+import { EditorView } from "@tiptap/pm/view";
 import { describe, expect, it, vi } from "vite-plus/test";
+import { toast } from "@/lib/toast";
+import { uploadTaskImage } from "@/lib/upload-task-image";
 import TaskDescription from "./task-description";
 
 const mocks = vi.hoisted(() => ({
@@ -71,6 +74,97 @@ vi.mock("@/lib/shiki-highlighter", () => ({
 }));
 
 describe("TaskDescription", () => {
+  it("pastes Markdown after a language change recreates the editor (#2037)", async () => {
+    const taskId = "markdown-recreated-task";
+    mocks.editor = null;
+    mocks.save.mockClear();
+    mocks.tasks.set(taskId, { id: taskId, description: "" });
+    const { rerender } = render(<TaskDescription taskId={taskId} />);
+    await waitFor(() => expect(mocks.editor?.isDestroyed).toBe(false));
+    const firstEditor = mocks.editor!;
+    const originalT = mocks.t;
+
+    try {
+      mocks.t = (key: string) => key;
+      rerender(<TaskDescription taskId={taskId} />);
+      await waitFor(() => {
+        expect(mocks.editor).not.toBe(firstEditor);
+        expect(mocks.editor?.isDestroyed).toBe(false);
+      });
+      expect(firstEditor.isDestroyed).toBe(true);
+
+      fireEvent.paste(mocks.editor!.view.dom, {
+        clipboardData: {
+          files: [],
+          getData: (type: string) =>
+            type === "text/plain" ? "Status\n---\n22/tcp ALLOW Anywhere" : "",
+        },
+      });
+
+      expect(mocks.editor!.getHTML()).toContain("<h2>Status</h2>");
+      expect(mocks.editor!.getText()).toContain("22/tcp ALLOW Anywhere");
+      await waitFor(() => expect(mocks.save).toHaveBeenCalled());
+      expect(mocks.save.mock.calls.at(-1)![0].description).toContain(
+        "22/tcp ALLOW Anywhere",
+      );
+    } finally {
+      mocks.t = originalT;
+    }
+  });
+
+  it("uploads every file dropped at once (#2111)", async () => {
+    const taskId = "multi-drop-task";
+    mocks.editor = null;
+    mocks.save.mockClear();
+    mocks.tasks.set(taskId, { id: taskId, description: "" });
+    // jsdom has no layout, so give ProseMirror a drop position and stub the
+    // scroll-into-view measurement.
+    const posAtCoords = vi
+      .spyOn(EditorView.prototype, "posAtCoords")
+      .mockReturnValue({ pos: 1, inside: -1 });
+    const coordsAtPos = vi
+      .spyOn(EditorView.prototype, "coordsAtPos")
+      .mockReturnValue({ left: 0, right: 0, top: 0, bottom: 0 });
+    const uploadMock = vi.mocked(uploadTaskImage);
+    uploadMock.mockReset();
+    uploadMock.mockImplementation(async ({ file }) => ({
+      url: `/api/asset/${file.name}`,
+      alt: file.name,
+      filename: file.name,
+      kind: "image" as const,
+      mimeType: file.type,
+      size: file.size,
+    }));
+    vi.mocked(toast.success).mockClear();
+    try {
+      const { unmount } = render(<TaskDescription taskId={taskId} />);
+      await waitFor(() => expect(mocks.editor?.isDestroyed).toBe(false));
+      const editor = mocks.editor!;
+
+      const files = ["first.png", "second.png"].map(
+        (name) => new File(["bytes"], name, { type: "image/png" }),
+      );
+      fireEvent.drop(editor.view.dom, {
+        dataTransfer: { files, getData: () => "" },
+      });
+
+      await waitFor(() => expect(toast.success).toHaveBeenCalledTimes(2));
+      expect(uploadMock).toHaveBeenCalledTimes(2);
+      expect(editor.getHTML()).toContain("/api/asset/first.png");
+      expect(editor.getHTML()).toContain("/api/asset/second.png");
+      // Let the debounced save land before the next test clears its mock.
+      await waitFor(() =>
+        expect(mocks.save.mock.calls.at(-1)?.[0].description).toContain(
+          "second.png",
+        ),
+      );
+      unmount();
+    } finally {
+      posAtCoords.mockRestore();
+      coordsAtPos.mockRestore();
+    }
+  });
+
   it("preserves bold Markdown when pasting, saving and reopening a checklist (#1779)", async () => {
     mocks.save.mockClear();
     mocks.tasks.set("markdown-task", { id: "markdown-task", description: "" });

@@ -163,11 +163,16 @@ function RouteComponent() {
         <ActiveFiltersBar
           subjects={view.subjects}
           onClear={filters.clearFilters}
+          customFieldValues={filters.customFieldValues}
         />
       }
     >
       <PageTitle
-        title={t("tasks:backlog.pageTitle", { name: project?.name })}
+        title={
+          project
+            ? t("tasks:backlog.pageTitle", { name: project.name })
+            : undefined
+        }
       />
       <div className="relative flex flex-col h-full min-h-0 overflow-hidden">
         <div className="flex-1 overflow-hidden bg-card h-full">

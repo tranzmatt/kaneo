@@ -13,10 +13,12 @@ import {
 import { useMemo, useRef, useState } from "react";
 import {
   FlatList,
+  KeyboardAvoidingView,
   ScrollView,
   TextInput,
   useWindowDimensions,
   View,
+  type ScrollViewInstance,
 } from "react-native";
 import { LinearGradientFallback } from "@/features/board/fade";
 
@@ -84,7 +86,7 @@ export default function BoardScreen() {
   );
   const [page, setPage] = useState(showPlanned ? 1 : 0);
   const pager = useRef<FlatList<Lane>>(null);
-  const tabs = useRef<ScrollView>(null);
+  const tabs = useRef<ScrollViewInstance>(null);
   const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const board = useQuery({
@@ -530,7 +532,8 @@ export default function BoardScreen() {
       {header}
       <View style={{ flex: 1 }}>{body}</View>
 
-      <View
+      <KeyboardAvoidingView
+        behavior="padding"
         style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}
         pointerEvents="box-none"
       >
@@ -640,7 +643,7 @@ export default function BoardScreen() {
             <Plus size={20} color={c.onPrimary} strokeWidth={2} />
           </Touch>
         </View>
-      </View>
+      </KeyboardAvoidingView>
 
       <FilterSheet
         visible={filterSheet}
