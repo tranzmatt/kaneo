@@ -4668,7 +4668,6 @@
 				"linkCopied": "Посилання скопійовано",
 				"more": "Більше",
 				"editTitle": "Редагувати назву",
-				"editDescription": "Редагувати опис",
 				"addDescription": "Додайте опис…"
 			}
 		},
@@ -4720,23 +4719,22 @@
 			"parentFailed": "Завдання створено, але його не вдалося пов’язати з батьківським завданням."
 		},
 		"editor": {
-			"description": "Опис",
 			"placeholder": "Додайте опис… Підтримується Markdown.",
-			"write": "Текст",
-			"preview": "Перегляд",
-			"nothingToPreview": "Нічого переглядати",
 			"bold": "Жирний",
 			"italic": "Курсив",
 			"heading": "Заголовок",
 			"list": "Список",
 			"code": "Код",
 			"link": "Посилання",
-			"boldPlaceholder": "жирний",
-			"italicPlaceholder": "курсив",
-			"codePlaceholder": "код",
-			"linkPlaceholder": "посилання",
 			"insertImage": "Вставити зображення",
-			"attachment": "Вкладення"
+			"attachment": "Вкладення",
+			"applyLink": "Apply",
+			"checklist": "Checklist",
+			"linkUrl": "URL",
+			"numberedList": "Numbered list",
+			"quote": "Quote",
+			"removeLink": "Remove link",
+			"hideKeyboard": "Hide keyboard"
 		},
 		"composer": {
 			"reply": "Відповісти {{name}}…",
@@ -5167,6 +5165,21 @@
 				"confirmPlaceholder": "Введіть ще раз",
 				"mismatch": "Паролі не збігаються",
 				"signOutOthers": "Вийти на інших пристроях"
+			},
+			"deleteAccount": {
+				"confirm": "Delete account",
+				"confirmLabel": "Type {{email}} to confirm",
+				"description": "Permanently delete your account and its data.",
+				"modalDescription": "This permanently deletes your account and cannot be undone. Workspaces only you belong to are deleted with it. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"modalTitle": "Delete your account?",
+				"noPassword": "This account has no password. Leave the field empty.",
+				"password": "Password",
+				"passwordHint": "Leave empty if you sign in without a password.",
+				"sectionTitle": "Danger zone",
+				"sessionTooOld": "For your security, enter your password, or sign out and sign in again before deleting your account.",
+				"success": "Your account was deleted",
+				"title": "Delete account",
+				"wrongPassword": "That password is not correct."
 			}
 		},
 		"notificationSettings": {
